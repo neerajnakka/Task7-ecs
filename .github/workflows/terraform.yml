@@ -60,27 +60,31 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
           export AWS_DEFAULT_REGION=$AWS_REGION
 
-          # Install AWS CLI if missing
-          sudo apt-get update && sudo apt-get install -y awscli
+          # Install AWS CLI v2 (more robust than apt)
+          sudo apt-get update
+          sudo apt-get install -y unzip curl
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -o awscliv2.zip
+          sudo ./aws/install --update
 
           # Get Account ID to construct ECR URL
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           ECR_URL="${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
           REPO_URL="${ECR_URL}/${ECR_REPOSITORY}"
 
-          # Login to ECR
-          aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_URL
+          # Login to ECR (Docker needs sudo)
+          aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $ECR_URL
           
           # Pull new image
           IMAGE_URI="${REPO_URL}:${{ inputs.image_tag }}"
-          docker pull $IMAGE_URI
+          sudo docker pull $IMAGE_URI
           
           # Stop and Remove existing container
-          docker stop strapi-app || true
-          docker rm strapi-app || true
+          sudo docker stop strapi-app || true
+          sudo docker rm strapi-app || true
           
           # Run new container
-          docker run -d \
+          sudo docker run -d \
             --name strapi-app \
             --restart always \
             -p 80:1337 \
