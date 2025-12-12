@@ -83,6 +83,9 @@ jobs:
           sudo docker stop strapi-app || true
           sudo docker rm strapi-app || true
           
+          # Ensure network exists
+          sudo docker network create strapi-net || true
+
           # Run new container
           sudo docker run -d \
             --name strapi-app \
