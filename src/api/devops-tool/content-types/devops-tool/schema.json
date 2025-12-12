@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "devops_tools",
+  "info": {
+    "singularName": "devops-tool",
+    "pluralName": "devops-tools",
+    "displayName": "Devops tool"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Tool": {
+      "type": "string"
+    },
+    "Desc": {
+      "type": "string"
+    }
+  }
+}

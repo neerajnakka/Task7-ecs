@@ -1,0 +1,83 @@
+name: CD - Terraform Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker Image Tag to Deploy (default: latest commit SHA from CI)'
+        required: true
+        type: string
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ap-south-1
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      working-directory: ./task5-terraform
+      run: terraform init
+
+    - name: Terraform Validate
+      working-directory: ./task5-terraform
+      run: terraform validate
+
+    - name: Terraform Apply
+      id: tf-apply
+      working-directory: ./task5-terraform
+      run: |
+        terraform apply -auto-approve
+        echo "public_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+        echo "ecr_repo=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
+
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ steps.tf-apply.outputs.public_ip }}
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Install AWS CLI if missing (usually pre-installed on Ubuntu AMIs or via User Data)
+          sudo apt-get update && sudo apt-get install -y awscli
+
+          # Login to ECR
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ steps.tf-apply.outputs.ecr_repo }}
+          
+          # Pull new image
+          IMAGE_URI="${{ steps.tf-apply.outputs.ecr_repo }}:${{ inputs.image_tag }}"
+          docker pull $IMAGE_URI
+          
+          # Stop and Remove existing container
+          docker stop strapi-app || true
+          docker rm strapi-app || true
+          
+          # Run new container
+          # Note: We are running simple docker run here for the update, ignoring docker-compose for the update step for simplicity as requested,
+          # OR we can use the docker-compose file if it's on the server.
+          # Let's use docker run to be robust and direct.
+          docker run -d \
+            --name strapi-app \
+            --restart always \
+            -p 80:1337 \
+            -e DATABASE_CLIENT=postgres \
+            -e DATABASE_HOST=postgres-container-strapi \
+            -e DATABASE_PORT=5432 \
+            -e DATABASE_NAME=strapidb \
+            -e DATABASE_USERNAME=strapi \
+            -e DATABASE_PASSWORD=strapi123 \
+            -e NODE_ENV=production \
+            -e APP_KEYS="key1,key2" \
+            -e API_TOKEN_SALT="somerandomsalt123" \
+            -e ADMIN_JWT_SECRET="supersecretadminjwt" \
+            -e JWT_SECRET="supersecretjwt" \
+            --network strapi-net \
+            $IMAGE_URI
