@@ -309,6 +309,51 @@ terraform destroy -auto-approve
 
 ---
 
+## 🚀 Task 6 – Automated CI/CD Pipeline
+
+We implemented a robust **CI/CD Pipeline** using **GitHub Actions** to automate the build, test, and deployment process.
+
+### Architecture
+
+```mermaid
+flowchart LR
+    A[Code Push] -->|CI Trigger| B(GitHub Actions)
+    B -->|Build & Tag| C[Docker Image]
+    C -->|Push| D[AWS ECR]
+    
+    E[Manual Trigger] -->|CD Start| F(Terraform Deploy)
+    F -->|State Lock/Store| G[AWS S3]
+    F -->|Provision/Update| H[AWS EC2]
+    F -->|Deploy Container| H
+```
+
+### Components
+
+#### 1. Continuous Integration (CI)
+*   **Workflow**: `.github/workflows/ci.yml`
+*   **Trigger**: Push to `main` branch.
+*   **Actions**:
+    *   Authenticates with AWS.
+    *   Checks for ECR repository existence.
+    *   Builds Docker image from source.
+    *   Pushes image to **AWS Elastic Container Registry (ECR)** with git commit SHA tag.
+
+#### 2. Continuous Deployment (CD)
+*   **Workflow**: `.github/workflows/terraform.yml`
+*   **Trigger**: Manual Workflow Dispatch (for control).
+*   **Actions**:
+    *   **Terraform Init**: Uses **AWS S3 Backend** (`bucket: neeraj-strapi-task-state`) for remote state management.
+    *   **Terraform Apply**: Provisions/Updates EC2 instance and Security Groups.
+    *   **SSH Deployment**: Connects to the EC2 instance, connects the app to the `strapi-app_strapi-net` network, and launches the new container.
+
+### Key Improvements
+*   **State Persistence**: Moved from local `terraform.tfstate` to **S3 Remote Backend** to allow team collaboration and prevent state loss.
+*   **Security**: Used **GitHub Secrets** for AWS Credentials and SSH Keys.
+*   **Reliability**: Added check mechanisms for `cloud-init` completion and network existence.
+*   **Zero-Downtime-ish**: Rolling updates by pulling new images and restarting containers.
+
+---
+
 ## ✔️ Deliverables Summary
 
 | Task   | Deliverable                                                |
