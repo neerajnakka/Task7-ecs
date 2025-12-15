@@ -100,7 +100,8 @@ resource "aws_ecs_task_definition" "strapi" {
         { name = "APP_KEYS", value = var.app_keys },
         { name = "API_TOKEN_SALT", value = var.api_token_salt },
         { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
-        { name = "JWT_SECRET", value = var.jwt_secret }
+        { name = "JWT_SECRET", value = var.jwt_secret },
+        { name = "DATABASE_SSL", value = "false" }, # Fix: Disable strict SSL for internal RDS connection
       ]
     }
   ])
