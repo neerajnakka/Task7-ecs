@@ -126,5 +126,8 @@ resource "aws_ecs_service" "strapi" {
     container_port   = 1337
   }
 
+  # Allow 3 minutes for Strapi to start before ALB checks kill it
+  health_check_grace_period_seconds = 180
+
   depends_on = [aws_lb_listener.http]
 }
