@@ -1,0 +1,68 @@
+name: Debug ECS & Application Logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      log_limit:
+        description: 'Number of log lines to fetch'
+        required: false
+        default: '100'
+
+env:
+  AWS_REGION: ap-south-1
+  ECS_CLUSTER: strapi-ecs-cluster
+  ECS_SERVICE: strapi-service
+  LOG_GROUP: /ecs/strapi-app
+  DB_INSTANCE_ID: strapi-postgres-db
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: 1. Check ECS Service Health
+      run: |
+        echo "Fetching Service Status..."
+        aws ecs describe-services --cluster ${{ env.ECS_CLUSTER }} --services ${{ env.ECS_SERVICE }} --query "services[0].{Status:status, Desired:desiredCount, Running:runningCount, Events:events[0:5].message}" --output json
+
+    - name: 2. Analyze Recently Stopped Tasks (Why did they crash?)
+      run: |
+        echo "Listing last 3 STOPPED tasks..."
+        TASK_ARNS=$(aws ecs list-tasks --cluster ${{ env.ECS_CLUSTER }} --service-name ${{ env.ECS_SERVICE }} --desired-status STOPPED --max-items 3 --query "taskArns" --output text)
+        
+        if [ -z "$TASK_ARNS" ]; then
+          echo "No stopped tasks found."
+        else
+          echo "Describing Stopped Tasks:"
+          aws ecs describe-tasks --cluster ${{ env.ECS_CLUSTER }} --tasks $TASK_ARNS --query "tasks[].{Arn:taskArn, StoppedReason:stoppedReason, StopCode:stopCode, ContainerExitCode:containers[0].exitCode, ContainerReason:containers[0].reason, CreatedAt:createdAt}" --output json
+        fi
+
+    - name: 3. Fetch Application Logs (CloudWatch)
+      run: |
+        echo "Fetching latest log stream..."
+        LATEST_STREAM=$(aws logs describe-log-streams --log-group-name ${{ env.LOG_GROUP }} --order-by LastEventTime --descending --limit 1 --query "logStreams[0].logStreamName" --output text)
+        
+        if [ "$LATEST_STREAM" == "None" ]; then
+          echo "No log streams found."
+        else
+          echo "Reading logs from stream: $LATEST_STREAM"
+          aws logs get-log-events --log-group-name ${{ env.LOG_GROUP }} --log-stream-name $LATEST_STREAM --limit ${{ inputs.log_limit }} --query "events[].{Time:timestamp, Message:message}" --output table
+        fi
+
+    - name: 4. Check RDS Database Events
+      run: |
+        echo "Fetching recent RDS events..."
+        aws rds describe-events --source-type db-instance --duration 60 --query "Events[].{Time:Date, Message:Message}" --output table
