@@ -456,8 +456,8 @@ neeraj-strapi-task1/
 
 ## ✨ Author
 
-**Neeraj – DevOps Intern**  
-**Organization**: The Config Crew @ Pearl Thoughts
+**Neeraj – DevOps Engineer**  
+
 
 ---
 
