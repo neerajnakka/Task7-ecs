@@ -14,6 +14,14 @@ variable "project_name" {
   default     = "strapi"
 }
 
+variable "unique_suffix" {
+  description = "Unique suffix to avoid naming conflicts in shared AWS account (use your name or ID)"
+  type        = string
+  default     = "neeraj"
+  # This ensures resources don't conflict with other team members' deployments
+  # Example: strapi-neeraj-ecs-cluster instead of strapi-ecs-cluster
+}
+
 # ============================================================================
 # DATABASE VARIABLES
 # ============================================================================
@@ -151,7 +159,7 @@ variable "node_env" {
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = "10.1.0.0/16"
 }
 
 variable "container_port" {

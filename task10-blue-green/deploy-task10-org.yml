@@ -1,0 +1,100 @@
+name: Deploy to ECS Task 10 - Organization Account
+
+on:
+  push:
+    branches: [ main, task10 ]
+  pull_request:
+    branches: [ main, task10 ]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: strapi-neeraj-ecs-repo
+  ECR_REGISTRY: 301782007642.dkr.ecr.ap-south-1.amazonaws.com
+  ECS_SERVICE: strapi-neeraj-service
+  ECS_CLUSTER: strapi-neeraj-ecs-cluster
+  ECS_TASK_DEFINITION: strapi-neeraj-task
+  CONTAINER_NAME: strapi-neeraj-container
+
+jobs:
+  deploy:
+    name: Deploy to Task 10 Organization Account
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials for Organization Account
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ORG }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ORG }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "Building Docker image..."
+        
+        # Build Docker image
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        
+        echo "Pushing image to ECR..."
+        
+        # Push both tagged and latest images
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        
+        echo "Image pushed successfully!"
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Download current task definition
+      run: |
+        echo "Downloading current task definition..."
+        aws ecs describe-task-definition \
+          --task-definition $ECS_TASK_DEFINITION \
+          --query taskDefinition > task-definition.json
+        
+        echo "Current task definition downloaded"
+        cat task-definition.json
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+
+    - name: Verify deployment
+      run: |
+        echo "Deployment completed!"
+        echo "Application URL: http://strapi-neeraj-alb-1558623704.ap-south-1.elb.amazonaws.com"
+        echo "Admin Panel: http://strapi-neeraj-alb-1558623704.ap-south-1.elb.amazonaws.com/admin"
+        
+        # Wait a moment for the service to stabilize
+        sleep 30
+        
+        # Check service status
+        aws ecs describe-services \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount}'

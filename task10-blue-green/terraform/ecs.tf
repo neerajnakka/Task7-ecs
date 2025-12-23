@@ -5,7 +5,7 @@
 # All our tasks will run in this cluster
 
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-ecs-cluster"
+  name = "${var.project_name}-${var.unique_suffix}-ecs-cluster"
   
   # Enable Container Insights for monitoring
   setting {
@@ -14,7 +14,7 @@ resource "aws_ecs_cluster" "main" {
   }
   
   tags = {
-    Name = "${var.project_name}-ecs-cluster"
+    Name = "${var.project_name}-${var.unique_suffix}-ecs-cluster"
   }
 }
 
@@ -43,7 +43,7 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
 # It specifies: image, CPU, memory, environment variables, logging, etc.
 
 resource "aws_ecs_task_definition" "strapi" {
-  family                   = "${var.project_name}-task"
+  family                   = "${var.project_name}-${var.unique_suffix}-task"
   network_mode             = "awsvpc"  # Required for Fargate
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.ecs_task_cpu  # 1024
@@ -128,7 +128,7 @@ resource "aws_ecs_task_definition" "strapi" {
   ])
   
   tags = {
-    Name = "${var.project_name}-task-definition"
+    Name = "${var.project_name}-${var.unique_suffix}-task-definition"
   }
 }
 
@@ -138,11 +138,11 @@ resource "aws_ecs_task_definition" "strapi" {
 # Centralized logging for all ECS tasks
 
 resource "aws_cloudwatch_log_group" "strapi_logs" {
-  name              = "/ecs/${var.project_name}-app"
+  name              = "/ecs/${var.project_name}-${var.unique_suffix}-app"
   retention_in_days = 7
   
   tags = {
-    Name = "${var.project_name}-log-group"
+    Name = "${var.project_name}-${var.unique_suffix}-log-group"
   }
 }
 
@@ -153,7 +153,7 @@ resource "aws_cloudwatch_log_group" "strapi_logs" {
 # For Blue/Green, the service can run tasks from different task definitions
 
 resource "aws_ecs_service" "strapi" {
-  name            = "${var.project_name}-service"
+  name            = "${var.project_name}-${var.unique_suffix}-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.strapi.arn
   desired_count   = var.ecs_desired_count  # 1
@@ -210,7 +210,7 @@ resource "aws_ecs_service" "strapi" {
   ]
   
   tags = {
-    Name = "${var.project_name}-service"
+    Name = "${var.project_name}-${var.unique_suffix}-service"
   }
 }
 

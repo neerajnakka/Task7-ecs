@@ -5,14 +5,14 @@
 # For Blue/Green, it can route to either Blue or Green target groups
 
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-alb"
+  name               = "${var.project_name}-${var.unique_suffix}-alb"
   internal           = false  # Accessible from internet
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = aws_subnet.public[*].id  # Use both public subnets
   
   tags = {
-    Name = "${var.project_name}-alb"
+    Name = "${var.project_name}-${var.unique_suffix}-alb"
   }
 }
 
@@ -23,7 +23,7 @@ resource "aws_lb" "main" {
 # Initially receives 100% of traffic
 
 resource "aws_lb_target_group" "blue" {
-  name        = "${var.project_name}-blue-tg"
+  name        = "${var.project_name}-${var.unique_suffix}-blue-tg"
   port        = var.container_port  # 1337
   protocol    = "HTTP"
   target_type = "ip"  # Important: "ip" for Fargate (not "instance")
@@ -41,7 +41,7 @@ resource "aws_lb_target_group" "blue" {
   }
   
   tags = {
-    Name = "${var.project_name}-blue-tg"
+    Name = "${var.project_name}-${var.unique_suffix}-blue-tg"
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_lb_target_group" "blue" {
 # During deployment, traffic gradually shifts from Blue to Green
 
 resource "aws_lb_target_group" "green" {
-  name        = "${var.project_name}-green-tg"
+  name        = "${var.project_name}-${var.unique_suffix}-green-tg"
   port        = var.container_port  # 1337
   protocol    = "HTTP"
   target_type = "ip"  # Important: "ip" for Fargate (not "instance")
@@ -70,7 +70,7 @@ resource "aws_lb_target_group" "green" {
   }
   
   tags = {
-    Name = "${var.project_name}-green-tg"
+    Name = "${var.project_name}-${var.unique_suffix}-green-tg"
   }
 }
 

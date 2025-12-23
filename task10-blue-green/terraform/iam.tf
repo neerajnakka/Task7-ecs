@@ -7,7 +7,7 @@
 # - Pull secrets from Secrets Manager (if used)
 
 resource "aws_iam_role" "ecs_execution_role" {
-  name = "${var.project_name}-ecs-execution-role"
+  name = "${var.project_name}-${var.unique_suffix}-ecs-execution-role"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -23,7 +23,7 @@ resource "aws_iam_role" "ecs_execution_role" {
   })
   
   tags = {
-    Name = "${var.project_name}-ecs-execution-role"
+    Name = "${var.project_name}-${var.unique_suffix}-ecs-execution-role"
   }
 }
 
@@ -47,7 +47,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
 # - CloudWatch (for custom metrics)
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "${var.project_name}-ecs-task-role"
+  name = "${var.project_name}-${var.unique_suffix}-ecs-task-role"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -63,7 +63,7 @@ resource "aws_iam_role" "ecs_task_role" {
   })
   
   tags = {
-    Name = "${var.project_name}-ecs-task-role"
+    Name = "${var.project_name}-${var.unique_suffix}-ecs-task-role"
   }
 }
 
@@ -73,7 +73,7 @@ resource "aws_iam_role" "ecs_task_role" {
 # Allows containers to access S3 and Secrets Manager
 
 resource "aws_iam_role_policy" "ecs_task_policy" {
-  name = "${var.project_name}-ecs-task-policy"
+  name = "${var.project_name}-${var.unique_suffix}-ecs-task-policy"
   role = aws_iam_role.ecs_task_role.id
   
   policy = jsonencode({
@@ -116,7 +116,7 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
 # - Assume other roles (for Blue/Green)
 
 resource "aws_iam_role" "codedeploy_role" {
-  name = "${var.project_name}-codedeploy-role"
+  name = "${var.project_name}-${var.unique_suffix}-codedeploy-role"
   
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -132,7 +132,7 @@ resource "aws_iam_role" "codedeploy_role" {
   })
   
   tags = {
-    Name = "${var.project_name}-codedeploy-role"
+    Name = "${var.project_name}-${var.unique_suffix}-codedeploy-role"
   }
 }
 
@@ -152,7 +152,7 @@ resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
 # Additional permissions for Blue/Green deployment
 
 resource "aws_iam_role_policy" "codedeploy_custom_policy" {
-  name = "${var.project_name}-codedeploy-custom-policy"
+  name = "${var.project_name}-${var.unique_suffix}-codedeploy-custom-policy"
   role = aws_iam_role.codedeploy_role.id
   
   policy = jsonencode({

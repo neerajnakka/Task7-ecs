@@ -5,11 +5,11 @@
 # We use PRIVATE subnets for security (database not exposed to internet)
 
 resource "aws_db_subnet_group" "default" {
-  name       = "${var.project_name}-db-subnet-group"
+  name       = "${var.project_name}-${var.unique_suffix}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id  # Use both private subnets
   
   tags = {
-    Name = "${var.project_name}-db-subnet-group"
+    Name = "${var.project_name}-${var.unique_suffix}-db-subnet-group"
   }
 }
 
@@ -21,9 +21,9 @@ resource "aws_db_subnet_group" "default" {
 
 resource "aws_db_instance" "default" {
   # Basic Configuration
-  identifier     = "${var.project_name}-db"
+  identifier     = "${var.project_name}-${var.unique_suffix}-db"
   engine         = "postgres"
-  engine_version = "16.3"
+  engine_version = "15.10"
   instance_class = "db.t3.micro"  # Small instance (free tier eligible)
   
   # Database Credentials
@@ -52,10 +52,10 @@ resource "aws_db_instance" "default" {
   # For production, set skip_final_snapshot = false
   
   # Parameter Group
-  parameter_group_name = "default.postgres16"
+  parameter_group_name = "default.postgres15"
   
   tags = {
-    Name = "${var.project_name}-db"
+    Name = "${var.project_name}-${var.unique_suffix}-db"
   }
 }
 

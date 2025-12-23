@@ -4,7 +4,7 @@
 # Alert if ECS tasks are using too much CPU
 
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "${var.project_name}-cpu-high"
+  alarm_name          = "${var.project_name}-${var.unique_suffix}-cpu-high"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   period              = 60
@@ -20,7 +20,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   }
   
   tags = {
-    Name = "${var.project_name}-cpu-alarm"
+    Name = "${var.project_name}-${var.unique_suffix}-cpu-alarm"
   }
 }
 
@@ -30,7 +30,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 # Alert if ECS tasks are using too much memory
 
 resource "aws_cloudwatch_metric_alarm" "memory_high" {
-  alarm_name          = "${var.project_name}-memory-high"
+  alarm_name          = "${var.project_name}-${var.unique_suffix}-memory-high"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   period              = 60
@@ -46,7 +46,7 @@ resource "aws_cloudwatch_metric_alarm" "memory_high" {
   }
   
   tags = {
-    Name = "${var.project_name}-memory-alarm"
+    Name = "${var.project_name}-${var.unique_suffix}-memory-alarm"
   }
 }
 
@@ -56,7 +56,7 @@ resource "aws_cloudwatch_metric_alarm" "memory_high" {
 # Visual dashboard showing service health
 
 resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
-  dashboard_name = "${var.project_name}-health-dashboard"
+  dashboard_name = "${var.project_name}-${var.unique_suffix}-health-dashboard"
   
   dashboard_body = jsonencode({
     widgets = [

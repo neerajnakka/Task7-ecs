@@ -8,7 +8,8 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
+  profile = "neerajnakka.n@gmail.com"  # Using org account profile
 }
 
 # Get current AWS account ID

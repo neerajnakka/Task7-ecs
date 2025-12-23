@@ -8,7 +8,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
   
   tags = {
-    Name = "${var.project_name}-vpc"
+    Name = "${var.project_name}-${var.unique_suffix}-vpc"
   }
 }
 
@@ -20,7 +20,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   
   tags = {
-    Name = "${var.project_name}-igw"
+    Name = "${var.project_name}-${var.unique_suffix}-igw"
   }
 }
 
@@ -39,12 +39,12 @@ data "aws_availability_zones" "available" {
 resource "aws_subnet" "public" {
   count                   = 2
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.${count.index}.0/24"
+  cidr_block              = "10.1.${count.index}.0/24"
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
   
   tags = {
-    Name = "${var.project_name}-public-subnet-${count.index + 1}"
+    Name = "${var.project_name}-${var.unique_suffix}-public-subnet-${count.index + 1}"
   }
 }
 
@@ -55,11 +55,11 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count             = 2
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.${count.index + 10}.0/24"
+  cidr_block        = "10.1.${count.index + 10}.0/24"
   availability_zone = data.aws_availability_zones.available.names[count.index]
   
   tags = {
-    Name = "${var.project_name}-private-subnet-${count.index + 1}"
+    Name = "${var.project_name}-${var.unique_suffix}-private-subnet-${count.index + 1}"
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_route_table" "public" {
   }
   
   tags = {
-    Name = "${var.project_name}-public-rt"
+    Name = "${var.project_name}-${var.unique_suffix}-public-rt"
   }
 }
 
@@ -96,7 +96,7 @@ resource "aws_route_table_association" "public" {
 # ============================================================================
 
 resource "aws_security_group" "alb_sg" {
-  name   = "${var.project_name}-alb-sg"
+  name   = "${var.project_name}-${var.unique_suffix}-alb-sg"
   vpc_id = aws_vpc.main.id
   
   # Allow HTTP from anywhere
@@ -123,8 +123,13 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   
+  # Prevent destruction if ALB is still using it
+  lifecycle {
+    create_before_destroy = true
+  }
+  
   tags = {
-    Name = "${var.project_name}-alb-sg"
+    Name = "${var.project_name}-${var.unique_suffix}-alb-sg"
   }
 }
 
@@ -134,7 +139,7 @@ resource "aws_security_group" "alb_sg" {
 # ============================================================================
 
 resource "aws_security_group" "ecs_sg" {
-  name   = "${var.project_name}-ecs-sg"
+  name   = "${var.project_name}-${var.unique_suffix}-ecs-sg"
   vpc_id = aws_vpc.main.id
   
   # Allow traffic from ALB on port 1337
@@ -154,7 +159,7 @@ resource "aws_security_group" "ecs_sg" {
   }
   
   tags = {
-    Name = "${var.project_name}-ecs-sg"
+    Name = "${var.project_name}-${var.unique_suffix}-ecs-sg"
   }
 }
 
@@ -164,7 +169,7 @@ resource "aws_security_group" "ecs_sg" {
 # ============================================================================
 
 resource "aws_security_group" "rds_sg" {
-  name   = "${var.project_name}-rds-sg"
+  name   = "${var.project_name}-${var.unique_suffix}-rds-sg"
   vpc_id = aws_vpc.main.id
   
   # Allow PostgreSQL traffic from ECS
@@ -184,6 +189,6 @@ resource "aws_security_group" "rds_sg" {
   }
   
   tags = {
-    Name = "${var.project_name}-rds-sg"
+    Name = "${var.project_name}-${var.unique_suffix}-rds-sg"
   }
 }

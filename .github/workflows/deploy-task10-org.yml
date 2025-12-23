@@ -1,0 +1,271 @@
+name: Deploy to ECS Task 10 - Organization Account
+
+on:
+  push:
+    branches: [ main, task10 ]
+  pull_request:
+    branches: [ main, task10 ]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: strapi-neeraj-ecs-repo
+  ECR_REGISTRY: 301782007642.dkr.ecr.ap-south-1.amazonaws.com
+  ECS_SERVICE: strapi-neeraj-service
+  ECS_CLUSTER: strapi-neeraj-ecs-cluster
+  ECS_TASK_DEFINITION: strapi-neeraj-task
+  CONTAINER_NAME: strapi-neeraj-container
+
+jobs:
+  deploy:
+    name: Deploy to Task 10 Organization Account
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials for Organization Account
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ORG }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ORG }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Ensure ECR repository exists
+      run: |
+        echo "Checking if ECR repository exists..."
+        
+        # Check if repository exists, create if it doesn't
+        if ! aws ecr describe-repositories --repository-names $ECR_REPOSITORY 2>/dev/null; then
+          echo "ECR repository doesn't exist. Creating..."
+          aws ecr create-repository \
+            --repository-name $ECR_REPOSITORY \
+            --image-scanning-configuration scanOnPush=true \
+            --encryption-configuration encryptionType=AES256
+          
+          # Set lifecycle policy to manage image retention
+          aws ecr put-lifecycle-policy \
+            --repository-name $ECR_REPOSITORY \
+            --lifecycle-policy-text '{
+              "rules": [
+                {
+                  "rulePriority": 1,
+                  "description": "Keep last 10 images",
+                  "selection": {
+                    "tagStatus": "any",
+                    "countType": "imageCountMoreThan",
+                    "countNumber": 10
+                  },
+                  "action": {
+                    "type": "expire"
+                  }
+                }
+              ]
+            }'
+          
+          echo "ECR repository created successfully!"
+        else
+          echo "ECR repository already exists. Proceeding..."
+        fi
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "Building Docker image..."
+        
+        # Build Docker image
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        
+        echo "Pushing image to ECR..."
+        
+        # Push both tagged and latest images
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        
+        echo "Image pushed successfully!"
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Ensure ECS cluster exists
+      run: |
+        echo "Checking if ECS cluster exists..."
+        
+        # Check if cluster exists, create if it doesn't
+        if ! aws ecs describe-clusters --clusters $ECS_CLUSTER --query 'clusters[?status==`ACTIVE`]' --output text | grep -q $ECS_CLUSTER; then
+          echo "ECS cluster doesn't exist. Creating..."
+          aws ecs create-cluster \
+            --cluster-name $ECS_CLUSTER \
+            --capacity-providers FARGATE \
+            --default-capacity-provider-strategy capacityProvider=FARGATE,weight=1
+          
+          echo "ECS cluster created successfully!"
+        else
+          echo "ECS cluster already exists. Proceeding..."
+        fi
+
+    - name: Get or create task definition
+      id: task-def-setup
+      run: |
+        echo "Checking if task definition exists..."
+        
+        # Try to get existing task definition
+        if aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION 2>/dev/null > task-definition.json; then
+          echo "Task definition exists. Using existing definition..."
+          # Extract just the task definition part
+          cat task-definition.json | jq '.taskDefinition' > temp-task-def.json
+          mv temp-task-def.json task-definition.json
+        else
+          echo "Task definition doesn't exist. Creating new one..."
+          # Create a basic task definition
+          cat > task-definition.json << EOF
+        {
+          "family": "$ECS_TASK_DEFINITION",
+          "networkMode": "awsvpc",
+          "requiresCompatibilities": ["FARGATE"],
+          "cpu": "1024",
+          "memory": "2048",
+          "executionRoleArn": "arn:aws:iam::301782007642:role/strapi-neeraj-ecs-execution-role",
+          "taskRoleArn": "arn:aws:iam::301782007642:role/strapi-neeraj-ecs-task-role",
+          "containerDefinitions": [
+            {
+              "name": "$CONTAINER_NAME",
+              "image": "$ECR_REGISTRY/$ECR_REPOSITORY:latest",
+              "portMappings": [
+                {
+                  "containerPort": 1337,
+                  "protocol": "tcp"
+                }
+              ],
+              "essential": true,
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "/ecs/strapi-neeraj-app",
+                  "awslogs-region": "$AWS_REGION",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              },
+              "environment": [
+                {
+                  "name": "NODE_ENV",
+                  "value": "production"
+                },
+                {
+                  "name": "DATABASE_CLIENT",
+                  "value": "postgres"
+                },
+                {
+                  "name": "DATABASE_HOST",
+                  "value": "strapi-neeraj-db.cbowmc0uim96.ap-south-1.rds.amazonaws.com"
+                },
+                {
+                  "name": "DATABASE_PORT",
+                  "value": "5432"
+                },
+                {
+                  "name": "DATABASE_NAME",
+                  "value": "strapi_ecs_db"
+                },
+                {
+                  "name": "DATABASE_USERNAME",
+                  "value": "strapi"
+                },
+                {
+                  "name": "DATABASE_PASSWORD",
+                  "value": "StrapiSecurePass2025!"
+                },
+                {
+                  "name": "APP_KEYS",
+                  "value": "key1,key2"
+                },
+                {
+                  "name": "API_TOKEN_SALT",
+                  "value": "somerandomsalt123"
+                },
+                {
+                  "name": "ADMIN_JWT_SECRET",
+                  "value": "supersecretadminjwt"
+                },
+                {
+                  "name": "JWT_SECRET",
+                  "value": "supersecretjwt"
+                }
+              ]
+            }
+          ]
+        }
+        EOF
+        fi
+        
+        echo "Task definition prepared"
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Ensure ECS service exists or update it
+      run: |
+        echo "Checking if ECS service exists..."
+        
+        # Register the new task definition first
+        TASK_DEF_ARN=$(aws ecs register-task-definition \
+          --cli-input-json file://${{ steps.task-def.outputs.task-definition }} \
+          --query 'taskDefinition.taskDefinitionArn' \
+          --output text)
+        
+        echo "Task definition registered: $TASK_DEF_ARN"
+        
+        # Check if service exists
+        if aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[?status==`ACTIVE`]' --output text | grep -q $ECS_SERVICE; then
+          echo "ECS service exists. Updating..."
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $TASK_DEF_ARN
+        else
+          echo "ECS service doesn't exist. Creating..."
+          aws ecs create-service \
+            --cluster $ECS_CLUSTER \
+            --service-name $ECS_SERVICE \
+            --task-definition $TASK_DEF_ARN \
+            --desired-count 1 \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[subnet-0d345cbf8d92d7c03,subnet-095b31d8bb30fa28e],securityGroups=[sg-03ba8f2d20f02d36e],assignPublicIp=ENABLED}" \
+            --load-balancers "targetGroupArn=arn:aws:elasticloadbalancing:ap-south-1:301782007642:targetgroup/strapi-neeraj-blue-tg/090c8e51bb7caa43,containerName=$CONTAINER_NAME,containerPort=1337"
+        fi
+
+    - name: Wait for service stability
+      run: |
+        echo "Waiting for service to stabilize..."
+        aws ecs wait services-stable \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --cli-read-timeout 900 \
+          --cli-connect-timeout 60
+
+    - name: Verify deployment
+      run: |
+        echo "Deployment completed!"
+        echo "Application URL: http://strapi-neeraj-alb-1558623704.ap-south-1.elb.amazonaws.com"
+        echo "Admin Panel: http://strapi-neeraj-alb-1558623704.ap-south-1.elb.amazonaws.com/admin"
+        
+        # Check service status
+        aws ecs describe-services \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --query 'services[0].{Status:status,Running:runningCount,Desired:desiredCount,TaskDefinition:taskDefinition}'
+        
+        echo "Deployment verification complete!"

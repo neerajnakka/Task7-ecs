@@ -6,7 +6,7 @@
 # ECS will pull images from here
 
 resource "aws_ecr_repository" "app_repo" {
-  name                 = "${var.project_name}-ecs-repo"
+  name                 = "${var.project_name}-${var.unique_suffix}-ecs-repo"
   image_tag_mutability = "MUTABLE"  # Allow overwriting image tags
   
   # Enable image scanning for vulnerabilities
@@ -15,7 +15,7 @@ resource "aws_ecr_repository" "app_repo" {
   }
   
   tags = {
-    Name = "${var.project_name}-ecr-repo"
+    Name = "${var.project_name}-${var.unique_suffix}-ecr-repo"
   }
 }
 
