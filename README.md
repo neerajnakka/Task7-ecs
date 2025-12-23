@@ -19,7 +19,8 @@ This repository contains a Strapi application.
 | **Task 6** | Automated CI/CD Pipeline (GitHub Actions + AWS ECR + S3 Backend) |
 | **Task 7** | **Production Deployment** (ECS Fargate, RDS, Application Load Balancer) |
 | **Task 8** | **CloudWatch Monitoring** (Dashboards, Alarms, Container Insights) |
-| **Task 9** | **Cost Optimization** (Fargate Spot Instnaces) |
+| **Task 9** | **Cost Optimization** (Fargate Spot Instances) |
+| **Task 10** | **Blue/Green Deployment** (CodeDeploy, Traffic Shifting, Zero Downtime) |
 
 ---
 
@@ -430,6 +431,22 @@ Modified the ECS production cluster to run on **Fargate Spot Instances** instead
     *   `weight = 100` (100% of tasks run on Spot capacity).
 3.  **Result**: The application runs on spare AWS capacity at a significantly reduced rate, with the trade-off of potential interruptions (handled by ECS auto-replacement).
 
+## 🔄 Task 10 – Blue/Green Deployment (CodeDeploy)
+
+Upgraded the deployment strategy to **Blue/Green** for zero-downtime updates and safe rollbacks.
+
+### Architecture
+*   **Blue/Green Target Groups**: Two separate target groups for live (Blue) and staging (Green) traffic.
+*   **AWS CodeDeploy**: Manages the deployment lifecycle.
+*   **Canary Strategy**: `CodeDeployDefault.ECSCanary10Percent5Minutes`.
+    *   Shifts **10%** of traffic to the new version (Green).
+    *   Waits **5 minutes** to verify health.
+    *   Shifts the remaining **90%**.
+
+### Key Fixes Implemented
+1.  **Database SSL**: Fixed connectivity issues by enforcing `DATABASE_SSL=true`.
+2.  **Conflict Resolution**: Configured Terraform to ignore changes to Task Definitions, preventing conflicts with CodeDeploy.
+
 ---
 
 ## ✔️ Deliverables Summary
@@ -445,6 +462,7 @@ Modified the ECS production cluster to run on **Fargate Spot Instances** instead
 | Task 7 | Production ECS Fargate Cluster + RDS + Automated Deploy|
 | Task 8 | CloudWatch Alarms & Dashboard resources (`monitoring.tf`)  |
 | Task 9 | Fargate Spot implementation for Cost Savings (`task9.md`)  |
+| Task 10 | Blue/Green Deployment with CodeDeploy (`task10.md`) |
 
 ---
 

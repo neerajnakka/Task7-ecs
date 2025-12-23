@@ -112,6 +112,10 @@ resource "aws_ecs_task_definition" "strapi" {
         {
           name  = "JWT_SECRET"
           value = var.jwt_secret
+        },
+        {
+          name  = "DATABASE_SSL"
+          value = "true"
         }
       ]
       
@@ -211,6 +215,13 @@ resource "aws_ecs_service" "strapi" {
   
   tags = {
     Name = "${var.project_name}-${var.unique_suffix}-service"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+      load_balancer
+    ]
   }
 }
 

@@ -218,3 +218,7 @@ output "deployment_instructions" {
     ========================================
   EOT
 }
+
+output "debug_task_def_arn" {
+  value = aws_ecs_task_definition.strapi.arn
+}

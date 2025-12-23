@@ -1,0 +1,28 @@
+# aws_ecs_task_definition.strapi:
+resource "aws_ecs_task_definition" "strapi" {
+    arn                      = "arn:aws:ecs:ap-south-1:301782007642:task-definition/strapi-neeraj-task:6"
+    arn_without_revision     = "arn:aws:ecs:ap-south-1:301782007642:task-definition/strapi-neeraj-task"
+    container_definitions    = (sensitive value)
+    cpu                      = "1024"
+    enable_fault_injection   = false
+    execution_role_arn       = "arn:aws:iam::301782007642:role/strapi-neeraj-ecs-execution-role"
+    family                   = "strapi-neeraj-task"
+    id                       = "strapi-neeraj-task"
+    ipc_mode                 = [90mnull[0m[0m
+    memory                   = "2048"
+    network_mode             = "awsvpc"
+    pid_mode                 = [90mnull[0m[0m
+    requires_compatibilities = [
+        "FARGATE",
+    ]
+    revision                 = 6
+    skip_destroy             = false
+    tags                     = {
+        "Name" = "strapi-neeraj-task-definition"
+    }
+    tags_all                 = {
+        "Name" = "strapi-neeraj-task-definition"
+    }
+    task_role_arn            = "arn:aws:iam::301782007642:role/strapi-neeraj-ecs-task-role"
+    track_latest             = false
+}
