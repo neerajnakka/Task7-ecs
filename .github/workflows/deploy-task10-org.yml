@@ -14,7 +14,7 @@ env:
   ECS_SERVICE: strapi-neeraj-service
   ECS_CLUSTER: strapi-neeraj-ecs-cluster
   ECS_TASK_DEFINITION: strapi-neeraj-task
-  CONTAINER_NAME: strapi-neeraj-container
+  CONTAINER_NAME: strapi-app
 
 jobs:
   deploy:
