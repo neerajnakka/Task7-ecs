@@ -64,9 +64,9 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy to Amazon ECS via CodeDeploy
-        uses: aws-actions/amazon-codedeploy-deploy@v1
-        with:
-          application: ${{ env.CODE_DEPLOY_APP }}
-          deployment-group: ${{ env.CODE_DEPLOY_GROUP }}
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          wait-for-service-stability: true
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ env.CODE_DEPLOY_APP }} \
+            --deployment-group-name ${{ env.CODE_DEPLOY_GROUP }} \
+            --revision "{\"revisionType\": \"AppSpecContent\", \"appSpecContent\": {\"content\": \"{\\\"version\\\": 0.0, \\\"Resources\\\": [{\\\"TargetService\\\": {\\\"Type\\\": \\\"AWS::ECS::Service\\\", \\\"Properties\\\": {\\\"TaskDefinition\\\": \\\"${{ steps.task-def.outputs.task-definition }}\\\", \\\"LoadBalancerInfo\\\": {\\\"ContainerName\\\": \\\"${{ env.CONTAINER_NAME }}\\\", \\\"ContainerPort\\\": 1337}}}}] }\"}}" \
+            --description "Deployed via GitHub Actions"
