@@ -63,10 +63,16 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
+      - name: Register Task Definition
+        id: register-task
+        run: |
+          TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://${{ steps.task-def.outputs.task-definition }} --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "task_def_arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
+
       - name: Deploy to Amazon ECS via CodeDeploy
         run: |
           aws deploy create-deployment \
             --application-name ${{ env.CODE_DEPLOY_APP }} \
             --deployment-group-name ${{ env.CODE_DEPLOY_GROUP }} \
-            --revision "{\"revisionType\": \"AppSpecContent\", \"appSpecContent\": {\"content\": \"{\\\"version\\\": 0.0, \\\"Resources\\\": [{\\\"TargetService\\\": {\\\"Type\\\": \\\"AWS::ECS::Service\\\", \\\"Properties\\\": {\\\"TaskDefinition\\\": \\\"${{ steps.task-def.outputs.task-definition }}\\\", \\\"LoadBalancerInfo\\\": {\\\"ContainerName\\\": \\\"${{ env.CONTAINER_NAME }}\\\", \\\"ContainerPort\\\": 1337}}}}] }\"}}" \
+            --revision "{\"revisionType\": \"AppSpecContent\", \"appSpecContent\": {\"content\": \"{\\\"version\\\": 0.0, \\\"Resources\\\": [{\\\"TargetService\\\": {\\\"Type\\\": \\\"AWS::ECS::Service\\\", \\\"Properties\\\": {\\\"TaskDefinition\\\": \\\"${{ steps.register-task.outputs.task_def_arn }}\\\", \\\"LoadBalancerInfo\\\": {\\\"ContainerName\\\": \\\"${{ env.CONTAINER_NAME }}\\\", \\\"ContainerPort\\\": 1337}}}}] }\"}}" \
             --description "Deployed via GitHub Actions"
