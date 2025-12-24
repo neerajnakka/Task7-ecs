@@ -1,6 +1,0 @@
-[
-  {
-    "Type": "forward",
-    "TargetGroupArn": "arn:aws:elasticloadbalancing:ap-south-1:301782007642:targetgroup/strapi-neeraj-blue-tg/090c8e51bb7caa43"
-  }
-]

@@ -1,63 +1,46 @@
-# ============================================================================
-# CLOUDWATCH ALARMS - CPU UTILIZATION
-# ============================================================================
-# Alert if ECS tasks are using too much CPU
+# --- CloudWatch Alarms ---
 
+# 1. High CPU Alarm
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "${var.project_name}-${var.unique_suffix}-cpu-high"
+  alarm_name          = "strapi-cpu-high-neeraj"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
-  period              = 60
   metric_name         = "CPUUtilization"
   namespace           = "AWS/ECS"
+  period              = 60
   statistic           = "Average"
   threshold           = 80
-  alarm_description   = "Alert when CPU utilization is above 80%"
+  alarm_description   = "This metric monitors ECS Service CPU utilization"
   
   dimensions = {
     ClusterName = aws_ecs_cluster.main.name
     ServiceName = aws_ecs_service.strapi.name
   }
-  
-  tags = {
-    Name = "${var.project_name}-${var.unique_suffix}-cpu-alarm"
-  }
 }
 
-# ============================================================================
-# CLOUDWATCH ALARMS - MEMORY UTILIZATION
-# ============================================================================
-# Alert if ECS tasks are using too much memory
-
+# 2. High Memory Alarm
 resource "aws_cloudwatch_metric_alarm" "memory_high" {
-  alarm_name          = "${var.project_name}-${var.unique_suffix}-memory-high"
+  alarm_name          = "strapi-memory-high-neeraj"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
-  period              = 60
   metric_name         = "MemoryUtilization"
   namespace           = "AWS/ECS"
+  period              = 60
   statistic           = "Average"
   threshold           = 80
-  alarm_description   = "Alert when memory utilization is above 80%"
-  
+  alarm_description   = "This metric monitors ECS Service Memory utilization"
+
   dimensions = {
     ClusterName = aws_ecs_cluster.main.name
     ServiceName = aws_ecs_service.strapi.name
   }
-  
-  tags = {
-    Name = "${var.project_name}-${var.unique_suffix}-memory-alarm"
-  }
 }
 
-# ============================================================================
-# CLOUDWATCH DASHBOARD
-# ============================================================================
-# Visual dashboard showing service health
+# --- CloudWatch Dashboard ---
 
 resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
-  dashboard_name = "${var.project_name}-${var.unique_suffix}-health-dashboard"
-  
+  dashboard_name = "Strapi-Health-Dashboard-neeraj"
+
   dashboard_body = jsonencode({
     widgets = [
       {
@@ -74,13 +57,7 @@ resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
           period = 300
           stat   = "Average"
           region = var.aws_region
-          title  = "Service CPU & Memory Utilization"
-          yAxis = {
-            left = {
-              min = 0
-              max = 100
-            }
-          }
+          title  = "Service CPU & Memory"
         }
       },
       {
@@ -119,5 +96,3 @@ resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
     ]
   })
 }
-
-

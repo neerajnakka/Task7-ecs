@@ -1,0 +1,10 @@
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        # In a CI/CD pipeline, this ARN is dynamically replaced with the new Revision ARN
+        TaskDefinition: "arn:aws:ecs:ap-south-1:301782007642:task-definition/strapi-task-neeraj:2"
+        LoadBalancerInfo:
+          ContainerName: "strapi-app-neeraj"
+          ContainerPort: 1337
