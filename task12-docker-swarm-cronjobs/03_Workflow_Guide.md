@@ -61,13 +61,13 @@ daily-backup.1.def... | Performing Backup Task at Fri Dec 27 10:00:12 UTC 2025
 
 ```mermaid
 graph TD
-    Start([Start]) --> Init[docker swarm init]
-    Init --> Define[Define Service Command]
-    Define --> Create[docker service create ... --restart-delay 10s]
-    Create --> Wait[Wait 10s]
-    Wait --> Exec[Container Runs Command]
-    Exec --> Exit[Container Exits]
-    Exit --> Check[Swarm Manager Detects Exit]
+    Start([Start]) --> Init["docker swarm init"]
+    Init --> Define["Define Service Command"]
+    Define --> Create["docker service create ... --restart-delay 10s"]
+    Create --> Wait["Wait 10s"]
+    Wait --> Exec["Container Runs Command"]
+    Exec --> Exit["Container Exits"]
+    Exit --> Check["Swarm Manager Detects Exit"]
     Check --> Wait
 ```
 

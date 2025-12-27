@@ -6,7 +6,7 @@ Docker Swarm is a container orchestration tool natively embedded in the Docker E
 ## High-Level Architecture
 The architecture consists of **Nodes**, which can be either **Managers** or **Workers**.
 
-![Docker Swarm Architecture Diagram](https://docs.docker.com/engine/swarm/images/swarm-diagram.png)
+![Docker Swarm Architecture Diagram](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Docker_Swarm_architecture.svg/2560px-Docker_Swarm_architecture.svg.png)
 *(Source: Official Docker Documentation)*
 
 ### Components Breakdown
@@ -38,18 +38,18 @@ Below is a visual representation of how Managers orchestrate Workers.
 graph TD
     subgraph Swarm Cluster
         subgraph Manager Nodes
-            M1[Manager 1 (Leader)]
-            M2[Manager 2]
-            M3[Manager 3]
+            M1["Manager 1 (Leader)"]
+            M2["Manager 2"]
+            M3["Manager 3"]
             M1 <--> M2
             M2 <--> M3
             M3 <--> M1
         end
         
         subgraph Worker Nodes
-            W1[Worker 1]
-            W2[Worker 2]
-            W3[Worker 3]
+            W1["Worker 1"]
+            W2["Worker 2"]
+            W3["Worker 3"]
         end
         
         M1 -- Assigns Tasks --> W1
@@ -57,7 +57,7 @@ graph TD
         M1 -- Assigns Tasks --> W3
     end
     
-    Client[User / CI/CD] -- Docker Service Create --> M1
+    Client["User / CI/CD"] -- Docker Service Create --> M1
 ```
 
 ## Networking (Overlay Network)
