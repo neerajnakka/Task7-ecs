@@ -1,7 +1,7 @@
 
 ---
 
-# 🌐 Strapi DevOps Tools – Neeraj (Tasks 1–3)
+# 🌐 Strapi DevOps Tools – Neeraj
 
 This repository contains a Strapi application.
 
@@ -21,6 +21,7 @@ This repository contains a Strapi application.
 | **Task 8** | **CloudWatch Monitoring** (Dashboards, Alarms, Container Insights) |
 | **Task 9** | **Cost Optimization** (Fargate Spot Instances) |
 | **Task 10** | **Blue/Green Deployment** (CodeDeploy, Traffic Shifting, Zero Downtime) |
+| **Task 11** | **Automated CI/CD** (GitHub Actions + ECS Task Dynamic Updates) |
 
 ---
 
@@ -437,15 +438,42 @@ Upgraded the deployment strategy to **Blue/Green** for zero-downtime updates and
 
 ### Architecture
 *   **Blue/Green Target Groups**: Two separate target groups for live (Blue) and staging (Green) traffic.
-*   **AWS CodeDeploy**: Manages the deployment lifecycle.
+*   **AWS CodeDeploy**: Manages the deployment lifecycle using the `Fargate` Launch Type.
 *   **Canary Strategy**: `CodeDeployDefault.ECSCanary10Percent5Minutes`.
     *   Shifts **10%** of traffic to the new version (Green).
-    *   Waits **5 minutes** to verify health.
-    *   Shifts the remaining **90%**.
+    *   Waits **5 minutes** to verify health (CloudWatch Alarms).
+    *   Shifts the remaining **90%** if no alarms trigger.
+    *   **Auto Rollback**: Immediately reverts traffic if `500` errors occur or CPU spikes.
 
-### Key Fixes Implemented
-1.  **Database SSL**: Fixed connectivity issues by enforcing `DATABASE_SSL=true`.
-2.  **Conflict Resolution**: Configured Terraform to ignore changes to Task Definitions, preventing conflicts with CodeDeploy.
+### Implementation Details (`codedeploy.tf`)
+*   **Deployment Group**: Manages the logic mapping ECS Service to the Blue/Green Target Groups.
+*   **Listeners**: Configured Production Listener (80) and Test Listener (8080) on ALB.
+*   **AppSpec**: Acts as the bridge between CodeDeploy and ECS Task Definitions.
+
+---
+
+## 🤖 Task 11 – Automated CI/CD Pipeline (Blue/Green)
+
+Fully automated the Manual Blue/Green deployment process using a robust **GitHub Actions Pipeline**.
+
+### The "Robot" Workflow (`cd-ecs-codedeploy.yml`)
+
+1.  **Build & Push**:
+    *   Builds Docker Image tagged with unique Git SHA.
+    *   Pushes to **ECR**.
+2.  **Dynamic Task Update**:
+    *   Downloads current `TaskDefinition` from AWS.
+    *   Renders it with the new Image ID (`amazon-ecs-render-task-definition`).
+    *   Registers the new Revision in AWS.
+3.  **Deploy Trigger**:
+    *   Constructs a dynamic **AppSpec** JSON string.
+    *   Triggers **AWS CodeDeploy** using the newly registered Revision.
+    *   Pipeline waits for the deployment to succeed or fail.
+
+### Key Features
+*   **Zero-Touch**: Commits to `main` automatically result in safe production releases.
+*   **Secure**: Uses Organization Secrets (`AWS_ACCESS_KEY_ID_ORG`) for authentication.
+*   **Dynamic**: No hardcoded image tags or task revisions; everything is calculated at runtime.
 
 ---
 
@@ -463,6 +491,7 @@ Upgraded the deployment strategy to **Blue/Green** for zero-downtime updates and
 | Task 8 | CloudWatch Alarms & Dashboard resources (`monitoring.tf`)  |
 | Task 9 | Fargate Spot implementation for Cost Savings (`task9.md`)  |
 | Task 10 | Blue/Green Deployment with CodeDeploy (`task10.md`) |
+| Task 11 | Automated GitHub Actions Pipeline (`cd-ecs-codedeploy.yml`) |
 
 ---
 
