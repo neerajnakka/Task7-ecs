@@ -54,6 +54,7 @@ You just tell ECS "Run this container with 2GB RAM", and it happens. AWS finds a
 | **Isolation** | Containers share Host Kernel. | Hypervisor Isolation (Best security). |
 | **Best For** | Legacy apps, GPU loads, Cost-optimization gurus. | Web Apps, APIs, Batch Jobs, "Modern" teams. |
 
+
 ### Recommendation
 **Start with Fargate.**
 Unless you have a specific requirement (GPU, specific compliance, massive scale cost-savings), Fargate drastically reduces the "Toil" of operations.
