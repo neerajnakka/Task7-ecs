@@ -22,6 +22,9 @@ This repository contains a Strapi application.
 | **Task 9** | **Cost Optimization** (Fargate Spot Instances) |
 | **Task 10** | **Blue/Green Deployment** (CodeDeploy, Traffic Shifting, Zero Downtime) |
 | **Task 11** | **Automated CI/CD** (GitHub Actions + ECS Task Dynamic Updates) |
+| **Task 12** | **Docker Swarm Cronjobs** (Research, Architecture, Strategies) |
+| **Task 13** | **Unleash Feature Flags** (Research, Local Setup, Strategies) |
+| **Task 14** | **AWS ECS Deep Dive** (Architecture, Fargate vs EC2, Manual Deploy) |
 
 ---
 
@@ -477,6 +480,70 @@ Fully automated the Manual Blue/Green deployment process using a robust **GitHub
 
 ---
 
+## 🐝 Task 12 – Docker Swarm Cronjobs Research
+
+Conducted deep research into running cronjobs on Docker Swarm, producing a comprehensive documentation suite.
+
+### 📚 Documentation Created
+Located in `task12-docker-swarm-cronjobs/`:
+
+1.  **Architecture Overview** (`01_Architecture_Overview.md`):
+    *   Deep dive into Managers, Workers, Raft Consensus, and Mesh Networking.
+2.  **Cronjob Strategies** (`02_Cronjobs_on_Swarm.md`):
+    *   Comparative analysis of 3 strategies: Restart Policies vs. Sidecars vs. `swarm-cronjob` Controller.
+3.  **Workflow Guide** (`03_Workflow_Guide.md`):
+    *   Step-by-step tutorial for simulating cronjobs using restart policies.
+4.  **Command Cheatsheet** (`04_Commands_Cheatsheet.md`):
+    *   Quick reference for managing Swarm clusters and services.
+
+### Key Insights
+*   **Native Limitations**: Swarm has no built-in `CronJob` object (unlike K8s).
+*   **Best Practice**: Use `swarm-cronjob` controller for production precision, or restart policies for simple intervals.
+
+---
+
+## 🚩 Task 13 – Unleash Feature Flags (Research & Setup)
+
+Created a comprehensive guide for **Unleash**, an open-source Feature Management platform.
+
+### 📚 Documentation Created
+Located in `task13-unleash/`:
+
+1.  **Concepts for Beginners** (`00_Concepts_for_Absolute_Beginners.md`):
+    *   Explains "Flags", "Strategies", and "Context" using simple metaphors.
+2.  **Architecture** (`01_Unleash_Overview_and_Architecture.md`):
+    *   Deep dive into **Client-Side Evaluation** and the **Unleash Proxy**.
+3.  **Local Setup Guide** (`03_Local_Setup_Guide_React.md`):
+    *   Step-by-step guide to running Unleash with **Docker Compose**.
+    *   Instructions for connecting a **React** app locally.
+4.  **Workflow Scenario** (`05_Step_by_Step_Workflow_Scenario.md`):
+    *   A real-world "Dark Mode" rollout strategy (Canary -> 100% -> Cleanup).
+
+### Key Output
+*   **Docker Compose**: A ready-to-run `docker-compose.yml` for a local Unleash Server + Postgres setup.
+
+---
+
+## 🏗️ Task 14 – AWS ECS Deep Dive (Research)
+
+Produced an in-depth "Course-Style" documentation suite for **Amazon Elastic Container Service (ECS)**.
+
+### 📚 Documentation Created
+Located in `task14-ecs-research/`:
+
+1.  **Glossary** (`00_ECS_Glossary_for_Beginners.md`):
+    *   "The Hotel Metaphor" to explain Clusters, Services, and Tasks.
+2.  **Architecture** (`01_Architecture.md`):
+    *   Detailed hierarchy explanation (Cluster -> Service -> Task).
+3.  **Deep Dive** (`02_Task_Definitions.md`):
+    *   Explaining the "DNA" of ECS, JSON structure, and IAM Roles.
+4.  **Launch Types** (`03_Launch_Types.md`):
+    *   **Fargate** (Serverless) vs **EC2** (Manual) detailed comparison.
+5.  **Manual Deployment** (`04_Manual_Deployment.md`):
+    *   A rigorous click-by-click guide to deploying Nginx via the AWS Console.
+
+---
+
 ## ✔️ Deliverables Summary
 
 | Task   | Deliverable                                                |
@@ -492,6 +559,9 @@ Fully automated the Manual Blue/Green deployment process using a robust **GitHub
 | Task 9 | Fargate Spot implementation for Cost Savings (`task9.md`)  |
 | Task 10 | Blue/Green Deployment with CodeDeploy (`task10.md`) |
 | Task 11 | Automated GitHub Actions Pipeline (`cd-ecs-codedeploy.yml`) |
+| Task 12 | Research Documentation (Architecture, Strategies, Cheatsheet) |
+| Task 13 | Unleash Documentation & Local Docker Compose Setup |
+| Task 14 | ECS Research Suite (5 In-Depth Markdown Guides) |
 
 ---
 
@@ -502,6 +572,9 @@ neeraj-strapi-task1/
 ├── src/                      # Strapi application code
 ├── config/                   # Strapi configuration
 ├── task5-terraform/          # EC2 Infrastructure (Legacy)
+├── task12-docker-swarm-cronjobs/ # Research & Docs
+├── task13-unleash/           # Unleash Research & Setup
+├── task14-ecs-research/      # ECS Deep Dive Research
 ├── task7-ecs/                # ECS Infrastructure (Production)
 │   └── terraform/
 │       ├── networking.tf     # VPC, Subnets, SG

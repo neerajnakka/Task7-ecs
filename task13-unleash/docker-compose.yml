@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  web:
+    image: unleashorg/unleash-server:latest
+    ports:
+      - "4242:4242"
+    environment:
+      DATABASE_HOST: db
+      DATABASE_NAME: unleash
+      DATABASE_USERNAME: unleash_user
+      DATABASE_PASSWORD: password
+      DATABASE_SSL: "false"
+      INIT_CLIENT_API_TOKENS: "*:development.unleash-insecure-api-token"
+      LOG_LEVEL: "warn"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4242/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: unleash
+      POSTGRES_USER: unleash_user
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=unleash_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
