@@ -13,19 +13,18 @@ It is crucial to understand the hierarchy. One does not simply "run a container.
 
 ```mermaid
 graph TD
-    Cluster[ECS Cluster]
-    
-    subgraph Cluster
-        ServiceA[Service: Web API]
-        ServiceB[Service: Worker]
+    subgraph ClusterBox [ECS Cluster]
+        direction TB
+        ServiceA["Service: Web API"]
+        ServiceB["Service: Worker"]
         
-        ServiceA -- Manages --> Task1[Task (Replica 1)]
-        ServiceA -- Manages --> Task2[Task (Replica 2)]
+        ServiceA -- Manages --> Task1["Task (Replica 1)"]
+        ServiceA -- Manages --> Task2["Task (Replica 2)"]
         
-        ServiceB -- Manages --> Task3[Task (Worker 1)]
+        ServiceB -- Manages --> Task3["Task (Worker 1)"]
     end
     
-    LB[Load Balancer] -- Traffic --> ServiceA
+    LB["Load Balancer"] -- Traffic --> ServiceA
 ```
 
 ## 2. Key Components Detailed

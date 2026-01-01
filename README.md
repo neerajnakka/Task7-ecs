@@ -25,6 +25,7 @@ This repository contains a Strapi application.
 | **Task 12** | **Docker Swarm Cronjobs** (Research, Architecture, Strategies) |
 | **Task 13** | **Unleash Feature Flags** (Research, Local Setup, Strategies) |
 | **Task 14** | **AWS ECS Deep Dive** (Architecture, Fargate vs EC2, Manual Deploy) |
+| **Task 15** | **Docker Image Optimization** (Size Reduction, Cost Analysis, Best Practices) |
 
 ---
 
@@ -544,6 +545,25 @@ Located in `task14-ecs-research/`:
 
 ---
 
+## 📉 Task 15 – Docker Image Optimization (Research)
+
+A detailed study on why and how to reduce Docker image sizes, focusing on Cost and Performance.
+
+### 📚 Documentation Created
+Located in `task15-docker-optimization/`:
+
+1.  **The Business Case** (`01_Why_Image_Size_Matters.md`):
+    *   Impact on **Deployment Speed** (Auto-scaling lag).
+    *   Impact on **Cloud Costs** (Data transfer & ECR storage).
+2.  **Techniques** (`02_Optimization_Techniques.md`):
+    *   **Multi-Stage Builds**, Alpine vs Distroless, and Layer Caching.
+3.  **Case Study** (`03_Practical_Case_Study.md`):
+    *   A "Before vs After" comparison reducing a Node.js image from **1.2GB** to **140MB**.
+4.  **Tools** (`04_Tools_and_Cheatsheet.md`):
+    *   Introduction to **Dive** and **Docker Slim**.
+
+---
+
 ## ✔️ Deliverables Summary
 
 | Task   | Deliverable                                                |
@@ -562,6 +582,7 @@ Located in `task14-ecs-research/`:
 | Task 12 | Research Documentation (Architecture, Strategies, Cheatsheet) |
 | Task 13 | Unleash Documentation & Local Docker Compose Setup |
 | Task 14 | ECS Research Suite (5 In-Depth Markdown Guides) |
+| Task 15 | Docker Image Optimization Guide (Techniques & Case Study) |
 
 ---
 
@@ -575,6 +596,7 @@ neeraj-strapi-task1/
 ├── task12-docker-swarm-cronjobs/ # Research & Docs
 ├── task13-unleash/           # Unleash Research & Setup
 ├── task14-ecs-research/      # ECS Deep Dive Research
+├── task15-docker-optimization/ # Image Size Reduction Research
 ├── task7-ecs/                # ECS Infrastructure (Production)
 │   └── terraform/
 │       ├── networking.tf     # VPC, Subnets, SG

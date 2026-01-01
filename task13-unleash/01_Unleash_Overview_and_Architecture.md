@@ -55,30 +55,30 @@ Unleash uses a **client-side evaluation** model (for server-side languages) and 
 
 ```mermaid
 graph TD
-    subgraph "Infrastructure"
-        DB[(PostgreSQL)]
-        Server[Unleash Server / UI]
+    subgraph Infrastructure
+        DB[("PostgreSQL")]
+        Server["Unleash Server"]
         DB --- Server
     end
 
-    subgraph "Backend Services (Server-Side SDK)"
-        App1[Backend App 1 <br/> (Node.js SDK)]
-        App2[Backend App 2 <br/> (Go SDK)]
+    subgraph BackendServices ["Backend Services"]
+        App1["Backend App 1"]
+        App2["Backend App 2"]
         
-        Server -- "Sync Config (Polling)" --> App1
-        Server -- "Sync Config (Polling)" --> App2
+        Server -- Sync Config --> App1
+        Server -- Sync Config --> App2
         
-        App1 -- "Metrics" --> Server
+        App1 -- Metrics --> Server
     end
 
-    subgraph "Frontend / Mobile (Client-Side)"
-        Proxy[Unleash Proxy]
-        React[React App]
-        iOS[iOS App]
+    subgraph FrontendClients ["Frontend / Mobile"]
+        Proxy["Unleash Proxy"]
+        React["React App"]
+        iOS["iOS App"]
 
-        Server -- "Sync Config" --> Proxy
-        Proxy -- "Evaluated Flags" --> React
-        Proxy -- "Evaluated Flags" --> iOS
+        Server -- Sync Config --> Proxy
+        Proxy -- Evaluated Flags --> React
+        Proxy -- Evaluated Flags --> iOS
     end
 ```
 
